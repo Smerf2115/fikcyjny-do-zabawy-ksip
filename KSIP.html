@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSIP - Zabawa</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #0f0;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        #header {
+            background-color: #333;
+            padding: 10px;
+            font-size: 1.5em;
+            color: #fff;
+            border-bottom: 2px solid #555;
+        }
+
+        #input-section, #add-section {
+            margin: 20px auto;
+            width: 80%;
+        }
+
+        #add-section {
+            display: none; /* Ukrywa formularz na starcie */
+            border: 1px solid #555;
+            padding: 15px;
+            background-color: #222;
+            margin-top: 20px;
+        }
+
+        input, select {
+            padding: 10px;
+            font-size: 1em;
+            margin: 5px;
+            border: 1px solid #0f0;
+            background: #000;
+            color: #0f0;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            background-color: #444;
+            color: #fff;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #666;
+        }
+
+        #output {
+            margin: 20px auto;
+            padding: 10px;
+            width: 80%;
+            background-color: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            white-space: pre-wrap;
+            text-align: left;
+        }
+
+        footer {
+            margin-top: 20px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">Fikcyjny System Informacyjny</div>
+
+    <div id="input-section">
+        <p>Wpisz zapytanie, aby wyszukać informacje:</p>
+        <input type="text" id="query" placeholder="Np. nazwisko, PESEL, pojazd...">
+        <button onclick="searchDatabase()">Szukaj</button>
+        <button onclick="toggleAddSection()">Dodaj nową osobę</button>
+    </div>
+
+    <div id="add-section">
+        <h3>Dodaj nową osobę do bazy danych:</h3>
+        <input type="text" id="name" placeholder="Imię i nazwisko" required>
+        <input type="text" id="pesel" placeholder="PESEL" required>
+        <input type="text" id="crime" placeholder="Przestępstwo" required>
+        <input type="text" id="vehicle" placeholder="Pojazd" required>
+        <input type="text" id="registration" placeholder="Nr rejestracyjny pojazdu" required>
+        <input type="text" id="vin" placeholder="VIN pojazdu" required>
+        <input type="number" id="fine" placeholder="Kwota grzywny" min="0" required>
+        <input type="date" id="date" required>
+        <input type="number" id="points" placeholder="Punkty karne" min="0" max="24">
+        <select id="criminalRecord">
+            <option value="Tak">Tak</option>
+            <option value="Nie">Nie</option>
+        </select>
+        <select id="penaltyType">
+            <option value="Pouczony">Pouczony</option>
+            <option value="Mandat">Mandat</option>
+        </select>
+        <button onclick="addPerson()">Dodaj osobę</button>
+    </div>
+
+    <div id="output">Wyniki wyszukiwania pojawią się tutaj...</div>
+
+    <footer>Stworzono dla zabawy 🚔</footer>
+
+    <script>
+        // Wczytanie bazy danych z LocalStorage lub domyślnej
+        let database = JSON.parse(localStorage.getItem('database')) || [];
+
+        // Zapis bazy danych do LocalStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('database', JSON.stringify(database));
+        }
+
+        // Funkcja wyszukiwania
+        function searchDatabase() {
+            const query = document.getElementById("query").value.toLowerCase();
+            const output = document.getElementById("output");
+            let results = "Brak wyników dla zapytania: " + query;
+
+            const matched = database.filter(record =>
+                record.name.toLowerCase().includes(query) ||
+                record.pesel.includes(query) ||
+                record.crime.toLowerCase().includes(query) ||
+                record.vehicle.toLowerCase().includes(query) ||
+                record.registration.toLowerCase().includes(query) ||
+                record.vin.toLowerCase().includes(query)
+            );
+
+            if (matched.length > 0) {
+                results = "🔍 Wyniki wyszukiwania:\n\n";
+                matched.forEach(record => {
+                    results += `👤 Imię i nazwisko: ${record.name}\n` +
+                               `📋 PESEL: ${record.pesel}\n` +
+                               `🚔 Przestępstwo: ${record.crime}\n` +
+                               `🚗 Pojazd: ${record.vehicle}\n` +
+                               `🔖 Nr rejestracyjny: ${record.registration}\n` +
+                               `🔧 VIN: ${record.vin}\n` +
+                               `💰 Kwota grzywny: ${record.fine} zł\n` +
+                               `📅 Data zdarzenia: ${record.date}\n` +
+                               `⚠️ Punkty karne: ${record.points}\n` +
+                               `🔴 Był karany: ${record.criminalRecord}\n` +
+                               `📄 Kara: ${record.penaltyType}\n\n`;
+                });
+            }
+
+            output.textContent = results;
+        }
+
+        // Funkcja pokazywania/ukrywania formularza dodawania osoby
+        function toggleAddSection() {
+            const addSection = document.getElementById("add-section");
+            addSection.style.display = addSection.style.display === "none" ? "block" : "none";
+        }
+
+        // Funkcja dodawania nowej osoby
+        function addPerson() {
+            const name = document.getElementById("name").value;
+            const pesel = document.getElementById("pesel").value;
+            const crime = document.getElementById("crime").value;
+            const vehicle = document.getElementById("vehicle").value;
+            const registration = document.getElementById("registration").value;
+            const vin = document.getElementById("vin").value;
+            const fine = document.getElementById("fine").value;
+            const date = document.getElementById("date").value;
+            const points = document.getElementById("points").value || 0;
+            const criminalRecord = document.getElementById("criminalRecord").value;
+            const penaltyType = document.getElementById("penaltyType").value;
+
+            if (!name || !pesel || !crime || !vehicle || !registration || !vin || !fine || !date) {
+                alert("Wszystkie pola muszą być wypełnione!");
+                return;
+            }
+
+            database.push({
+                name, pesel, crime, vehicle, registration, vin,
+                fine: parseInt(fine), date, points: parseInt(points),
+                criminalRecord, penaltyType
+            });
+
+            saveToLocalStorage(); // Zapisuje bazę do LocalStorage
+            alert("Nowa osoba została dodana do bazy!");
+            clearInputFields();
+        }
+
+        function clearInputFields() {
+            document.querySelectorAll('#add-section input, #add-section select').forEach(field => field.value = "");
+            document.getElementById("criminalRecord").value = "Nie";
+            document.getElementById("penaltyType").value = "Pouczony";
+        }
+    </script>
+</body>
+</html>
